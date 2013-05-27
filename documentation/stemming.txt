@@ -1,0 +1,59 @@
+/**
+ * documentation/stemming.txt describes how term stemming is employed by the
+ * Wumpus search engine.
+ *
+ * author:  Stefan Buettcher
+ * created: 2005-01-12
+ * changed: 2005-01-12
+ **/
+
+Stemming is performed by the static methods of the Stemmer class, which uses
+different stemmers for different languages. For English, the vanilla Porter
+stemmer is used. At query time (and within the internal index structures),
+stemmed terms are denoted by a leading "$" sign: "$count" refers to the
+disjunction ("count"+"counts"+"counted"+"counter"+"counting"+...).
+
+When the method
+
+  stem(char* string, int language)
+
+is called, the results of the stemming process are cached. Therefore, this
+method is to be preferred over the methods that are responsible for the actual
+stemming: stemEnglish, stemGerman, ...
+
+Stemmer::stem(char*, int) is called by Index both at indexing time and query
+time. One problem with stemming is that is approximately doubles the number
+of postings in the index. However, for most input terms the Stemmer produces
+the same term as output. So, we do not actually have to store the postings
+for the stemmed version.
+
+Example:
+
+  "index" stems to "index", and "indexing" stems to "index" as well.
+
+Since for "index", we have input == output, the postings of the term "index"
+do not appear in the postings list of "$index". Therefore, when a user asks
+for the postings list of the term "$index" at query time, we have to construct
+it as a disjunction: "$index" = ("$index"+"index").
+
+Although query processing performance is degradated, indexing performance is
+increased by a factor \approx 1.3.
+
+
+The actual amount of stemming performed at indexing time is defined by the
+parameter Index::STEMMING_LEVEL.
+
+- level 0: all stemming is performed at query time, maximimizing indexing
+           performance
+- level 1: some stemming is performed at indexing time; this means some
+           additional effort at query time: the query "$walking" will be
+           transformed into "walk"+"$walk", because "walk" is not stemmed at
+           indexing time
+- level 2: full stemming at indexing time (stemming results are cached to
+           achieve acceptable performance); note that stemming level 2 increases
+           the size of the index by almost 100%
+- level 3: full stemming at indexing time; if a term is stemmable, only its
+           stemmed form is kept in the final index, decreasing the total size
+           of the index at the cost of decreased query-time flexibility
+
+

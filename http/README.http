@@ -1,0 +1,61 @@
+http.pl
+======
+http.pl is a web server written in Perl that utilizes the HTTP::Daemon module to handle communication from clients.
+
+The following can be defined in the http.rc file:
+	-Base directory of the web server (HTTPRoot)
+	-TCP Port on which to bind (LocalPort)
+	-Allowed IP addresses (Allow)
+
+httpd serves content to clients in the following manner:
+	-requested files must be world-readable
+	-a non-executable is sent verbatim to the client
+	-an executable is run and the program output is sent to the client
+
+Requests for a non-existant file within a directory that is a file,
+i.e. if {HTTPRoot}/search.pl is a file
+	GET /search.pl/foo.pdf?... HTTP/1.1
+are parsed as requests for the directory that is a file.  This behaviour
+allows for scripts to return entire files while preserving the filename.
+
+http.rc
+=======
+The following options are configurable in the http.rc file
+
+Base options
+	HTTPRoot: path to the root of the web server
+	LocalPort: TCP port number on which to bind
+	Allow: IP addresses allowed to connect
+
+Wumpus specific options
+	WumpusCFG: path to the Wumpus configuration file
+	SearchQuery: indicate to front-end the type of search used in @desktop query
+	Authenticate: indicate to front-end that authentication is necessary
+
+Web Indexing options
+	WebCrawler: indicates to front-end that index contains web crawl data
+	CrawlDir: path to the web crawl data
+
+Command-line parameters
+=======================
+The options in the http.rc file can be overridden through command-line parameters
+	--port		--> LocalPort
+	--httproot	--> HTTPRoot
+	--allow		--> Allow
+
+	--authenticate	--> Authenticate
+	--noauthenticate
+
+	--wumpusCFG	--> WumpusCFG
+	--searchQuery	--> SearchQuery
+
+	--crawler	--> WebCrawler
+	--nocrawler
+	--crawlDir	--> CrawlDir
+
+Configuring for use with the Wumpus File System Search
+======================================================
+The front-end to the search engine requires the Text::Iconv module to use the iconv(3) system call.
+This module is platform dependant and requires compilation.  For simplicity, the source to the
+module (Text-Iconv-1.4.tar.gz) is included and the provided Makefile can build and install
+the module to the required location.

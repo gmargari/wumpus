@@ -1,0 +1,10 @@
+Wumpus File System Search
+=========================
+The perl CGI scripts in www/wumpus consist of the front-end to Wumpus that are served by the http.pl web server.
+
+The front-end uses the following external perl modules:
+Crypt::Lite
+MIME::Words
+Text::Iconv
+
+

@@ -1,0 +1,78 @@
+/**
+ * author: Stefan Buettcher
+ * created: 2004-09-10
+ * changed: 2004-09-20
+ **/
+
+
+Stefan's implementation of a filesystem within a file
+=====================================================
+
+The filesystem is block-based, as could be expected. However, the blocks are
+called "pages", as this seems to fit better in the underlying file metaphor.
+
+The general setup of the filesystem looks like this:
+
++------------+---------------     -+-------------+--------+-     -+------------+----------+-
+| Page 0     | Page 1      |  ...  | Page n-1    | Page n |  ...  | Page n+p-1 | Page n+p |  ...
+| (preamble) | (file data) |       | (file data) | (PLT)  |       | (PLT)      | (FPM)    |
++------------+---------------     -+-------------+--------+-     -+------------+----------+-
+
+["PLT" is "page layout table". "FPM" is "file->page mapping".]
+
+We have  p = n / pageSize  (where n = pageCount) for the number of pages
+occupied by the page layout table. The number of pages occupied by the
+file->page mapping depends on the number of files in the filesystem.
+
+So, for every page there are 4 bytes in the page layout table (see below for
+details). Since the number of files in the filesystem is upper-bounded by the
+number of pages, we have at most 8 bytes per page in the file->page mapping
+(see below for details), summing up to 12 bytes management information per
+page. For the default page size (512 bytes), this is about 2% of the total
+space consumed by the filesystem.
+
+
+The first 20 bytes of the file contain the preamble:
+
+bytes  0 -  3   FINGERPRINT, defined in filesystem.h
+bytes  4 -  8   page size in bytes
+bytes  9 - 12   number of pages in the filesystem
+bytes 13 - 16   number of pages occupied by the page layout table
+bytes 17 - 20   number of pages occupied by the file->page mapping
+
+
+The page layout table
+---------------------
+
+This table contains a 32-bit integer value for every page in the filesystem.
+Two basic cases are distinguished:
+
+  - value > 0
+
+    This page belongs to a file and is full. It is not the last page of the
+    file. The following page has the page number "value".
+
+	- value <= 0
+
+    This page belongs to a file and is either full or not. It is the last page
+    of the file. THe number of bytes stored in the page is equal to "-value".
+
+	- value == UNUSED_PAGE (defined in filesystem.h)
+
+    This page does not belong to any file.
+
+  - value == USED_PAGE (defined in filesystem.h)
+
+    This page does not belong to any file, but it has been reserved for later
+    use. This is a temporary status because it is only used when a file is
+    claiming a new page.
+
+
+The file->page mapping table
+----------------------------
+
+For every file in the filesystem, this table contains two 32-bit integers. The
+first integer points to the first page of the file. The second integer contains
+the number of pages that this file occupies.
+
+

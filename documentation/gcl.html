@@ -1,0 +1,96 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - GCL</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - GCL</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		The queries shown in the previous section are all relatively simple. In many
+		cases, you are searching for something that is more complicated than a simple
+		term or a phrase &ndash; you are looking for a text passage with a certain structure.
+		GCL can help you here.
+		<br><br>
+		The GCL (<em>generalized concordance lists</em>) query language [1] supports a
+		variety of operators to express structural constraints. All these operators are supported
+		by Wumpus and can be used in most places to replace simple word queries by more
+		complicated structural queries. GCL is based on the shortest-substring paradigm.
+		Shortest-substring requires that if two nested index extents (an extent is an arbitrary
+		interval in the index address space) satisfy a given expression, only the inner one
+		is returned by the respective operator. If, for instance, we are looking for all passages
+		in the text of Shakespeare's "Hamlet" that contain the words "to" and "be", the phrase
+		"to be" would be returned, but "to be or not to be" would not be returned, because it
+		contains "to be", which already satisfies the query conditions.
+		<br>
+		<ul>
+			<li> <tt>(A ^ B)</tt> returns all extents that match both queries <em>A</em> and <em>B</em>.
+			<li> <tt>(A + B)</tt> returns all extents that match either <em>A</em> or <em>B</em> (or both).
+			<li> <tt>(A .. B)</tt> returns all extents that start with an extend that matches
+				<em>A</em> and end with an extent that matches <em>B</em>.
+			<li> <tt>(A &gt; B)</tt> returns all extents that match <em>A</em> and contain at least
+				one extent that matches <em>B</em>.
+			<li> <tt>(A /&gt; B)</tt> returns all extents that match <em>A</em> and do not contain
+				an extent that matches <em>B</em>.
+			<li> <tt>(A &lt; B)</tt> returns all extents that match <em>A</em> and are contained in an
+				extent that matches <em>B</em>.
+			<li> <tt>(A /&lt; B)</tt> returns all extents that match <em>A</em> and are not contained
+				in an extent that matches <em>B</em>.
+			<li> <tt>[n]</tt> returns all index extents of length <em>n</em>.
+		</ul>
+		For example, these operators can be used in order to search for all passages, where
+		"wumpus" and "search" appear within 5 words from each other:
+		<blockquote>
+			<tt>("wumpus"^"search")&lt;[5]</tt>
+		</blockquote>
+		The most important structure in most information retrieval applications are
+		<em>documents</em>. In order to access documents in Wumpus, they have to be marked
+		in some way inside the source files. If, for instance, the source file is an XML
+		document in which every document starts with a &lt;doc&gt; tag and ends with a
+		&lt;/doc&gt; tag, then you can use GCL to create the set of all documents for you:
+		<blockquote>
+			<tt>"&lt;doc&gt;".."&lt;/doc&gt;"</tt>
+		</blockquote>
+		This can easily be extended so that Wumpus returns a list of all documents that contain
+		a certain word:
+		<blockquote>
+			<tt>("&lt;doc&gt;".."&lt;/doc&gt;") &gt; "wumpus"</tt>
+		</blockquote>
+		Or all documents of a given length, say 1000:
+		<blockquote>
+			<tt>(("&lt;doc&gt;".."&lt;/doc&gt;")&gt;[1000])&lt;[1000]</tt>
+		</blockquote>
+		The above GCL expression requires that every member of the result set is of the form
+		"&lt;doc&gt;".."&lt;/doc&gt;", contains an interval of length 1000, and is contained
+		in an interval of length 1000. This is exactly the set of all documents of length 1000.
+		<br><br>
+		In many cases, the <tt>^</tt> and <tt>+</tt> operators can be thought of as boolean
+		AND and OR, respectively:
+		<blockquote>
+			<tt>("&lt;doc&gt;".."&lt;/doc&gt;") &gt; ("man"^"woman")</tt>
+		</blockquote>
+		returns all documents that contain both "man" and "woman", while
+		<blockquote>
+			<tt>("&lt;doc&gt;".."&lt;/doc&gt;") &gt; ("dog"+"cat"+"mouse")</tt>
+		</blockquote>
+		returns all documents that contain at least one of the three words "dog", "cat", and "mouse".
+		More complicated boolean queries can be realized by deeper nested expressions:
+		<blockquote>
+			<tt>(("&lt;doc&gt;".."&lt;/doc&gt;") &gt; ("united"^"states")) /&gt; ("america")</tt>
+		</blockquote>
+		would return all documents that contain both "united" and "states", but
+		do not contain "america".
+		<br><br><br>
+		<u>References</u>
+		<br>
+		[1] C.L.A. Clarke, G.V. Cormack, and F.J. Burkowski. An Algebra for Structured Text
+		Search and a Framework for its Implementation. <em>The Computer Journal</em>,
+		38(1):43-56, 1995.
+		<br><br>
+	</body>
+</html>
+
+

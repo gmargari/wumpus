@@ -1,0 +1,32 @@
+# Port on which the web server binds
+LocalPort 8080
+
+# Base directory of files to be served by the HTTP server
+HTTPRoot ./www
+
+# IP Addresses allowed to access the web server
+# The * wildcard can be used to match all possible values within the subfield
+Allow 127.0.0.1
+Allow 129.97.*.*
+
+# Wumpus Specific
+
+# Type of search used in @desktop query
+# By document: ""<document!>".."</document!>""
+# By file: ""<file!>".."</file!>""
+# By TREC document: ""<doc>".."</doc>""
+#SearchQuery ""<document!>".."</document!>""
+SearchQuery ""<doc>".."</doc>""
+
+# Base directory of Wumpus installation
+# Used in scanning the wumpus.cfg configuration file for the TCP port on which it listens
+#WumpusCFG /media/usbdisk/stu/thesis/filesystem/wumpus.cfg
+#WumpusCFG /home/stu/thesis/experiments/wumpus.cfg
+WumpusCFG ../wumpus.cfg
+
+# Tells search pages if authentication against indexing server is required
+Authenticate true
+
+# Tells search pages to render in web crawler format
+# WebCrawler
+

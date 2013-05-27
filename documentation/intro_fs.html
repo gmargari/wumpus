@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - File system search</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - File system search</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-14</tt> <br>
+		<br>
+		Wumpus can be used as a file system search engine for Linux.
+		Before you can use Wumpus as a file system search engine, you first need to do
+		two things:
+		<ol>
+			<li style="padding:5px"> Build a Linux kernel with file system change notification enabled. At the moment,
+				only <a href="http://stefan.buettcher.org/cs/fschange/">fschange</a> is supported
+				by Wumpus. Support for
+				<a href="http://www.kernel.org/pub/linux/kernel/people/rml/inotify/">inotify</a>
+				is under development.
+			<li style="padding:5px"> Start a web server (e.g. <a href="http://httpd.apache.org/">Apache</a>)
+				that is configured to support PHP.
+		</ol>
+		After you have installed the new Linux kernel with file change notification support
+		and restarted your system, make sure that the notificaton service is running. For
+		fschange, you can do this by executing "cat /proc/fschange" as root. For inotify,
+		use the inotify-utils package provided by the inotify developer.
+		<br><br>
+		Before you can actually use the system, you need to do two more things:
+		<ol>
+			<li style="padding:5px">Edit the wumpus.cfg configuration file in the Wumpus main directory. Change
+				the TCP_PORT configuration variable to the port that you want Wumpus' TCP server
+				to listen on. Change the INDEXABLE_FILESYSTEMS variable so that it reflects your
+				local file system. Wumpus will only index files that are below one of the mount
+				points given here.
+			<li style="padding:5px">Edit the config.php file in wumpus/php so that it is consistent with the
+				TCP port specified in wumpus.cfg (this means changing the value of "$port"). Then copy all
+				files found in wumpus/php into a directory that can be accessed through the web server,
+				e.g. /var/www/html/wumpus or ~/public_html/wumpus).
+		</ol>
+		After you have started Wumpus in file system search mode by executing
+		bin/fssearch, you should be able to to access the index through the PHP scripts.
+		Wumpus will automatically start an exhaustive file system scan. The time between two
+		such scans can be specified using the TIME_BETWEEN_FS_SCANS configuration variable.
+		<br><br>
+		Wumpus automatically reacts to file system mounts and umounts by creating or
+		releasing indices under the respective mount points.
+		Per-file-system indices will be created under each mount point defined in the
+		configuration file. The index for the "/" file system, for example, will be found
+		in "/.indexdir/".
+		<br><br>
+		Please note that you might have to run <tt>umount</tt> twice in order to unmount
+		a given file system. This is because when you run it first, Linux cannot unmount
+		the file system, since Wumpus has still open files. However, it notices that an
+		unmount was requested. Thus, when you run <tt>umount</tt> the second time, it should
+		be successful.
+		<br><br>
+	</body>
+</html>
+
+

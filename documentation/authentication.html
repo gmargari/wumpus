@@ -1,0 +1,82 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - TCP connections and user authentication</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - TCP connections and user authentication</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		In the previous sections, we have only discussed how to use Wumpus from the command line.
+		If Wumpus is used from the command line, you can see the full index. In addition to the
+		command-line interface, Wumpus also includes a TCP server. This can be used to access the
+		index from within other processes on the same machine or even from different machines.
+		<br><br>
+		If you want to enable Wumpus' TCP server, you have to enable it in the configuration
+		file and set the configuration variable TCP_PORT to the desired value.
+		<blockquote><pre>
+# If this is greater than zero, we will have a TCP server accepting unauthenticated
+# connections on the port specified. If less than zero, the TCP server will not
+# be started.
+TCP_PORT = 1234 </pre></blockquote>
+		You can then access Wumpus' over TCP on the given port. TCP connections are different
+		from the command-line interface in that the results to a query depend on your user ID.
+		The original reason for this is Wumpus' file system search capability, but it is
+		useful in many other applications. After you connect to the system, you are logged in
+		as user NOBODY. Results to any of your queries will only refer to files that can be
+		read by every user in the system (S_IROTH for the particular file and a complete
+		S_IROTH+S_IXOTH directory chain from the root directory down to the file in question).
+		<br><br>
+		The user ID under which Wumpus knows you can be changed using the @login command:
+		<blockquote><pre>
+<b>@login stefan mysecretpassword</b>
+@1-Authentication failed. </pre></blockquote>
+		If you know the password, Wumpus will respond "@0-Authenticated." instead. You
+		can change your identity by sending new @login commands any time during a session.
+		Query results will always depend on your current identity and not reveal any
+		information about files that may not be read by you.
+		<br><br>
+		Wumpus supports two ways of authentication: a Wumpus-specific password file and the
+		information stored in /etc/passwd and /etc/shadow. The easiest way to authenticate
+		with Wumpus is to use the @login command together with your ordinary user account and
+		password. However, there are two limitations to this:
+		<ol>
+			<li> Wumpus can only access /etc/shadow if it is run with root privileges, which
+				in most cases is not desirable.
+			<li> It should not be used unless the client (process sending username/password)
+				and the Wumpus server are running on the same machine, because otherwise the
+				Unix account password might be compromised.
+		</ol>
+		In most cases, you should use the Wumpus-specific password file.
+		Its position is defined in the configuration file:
+		<blockquote><pre>
+# We use an internal username/password file in order to check whether @uid requests
+# over TCP connections shall be accepted; this is the position of the password file.
+# In addition to the password file, ordinary /etc/shadow authentication is provided.
+# The password file given here should only be used if you don't want users to
+# authenticate with their real Unix accounts.
+PASSWORD_FILE = ./wumpus.passwd </pre></blockquote>
+		The password file itself contains <em>(uid, username, password)</em> triples and looks
+		like this:
+		<blockquote><pre>
+# This is an example Wumpus password file. The format of a password line is:
+# uid:username:password
+
+9999:stefan:stefansrealpassword </pre></blockquote>
+		<br>
+		Special commands, such as @addfile and @removefile, are only accepted if the user
+		submitting them is either the process owner of Wumpus' main process or the system'
+		super-user (root).
+		<br><br>
+		Please note that unless you use Wumpus as a file system search engine with
+		file change notification enabled, it will not be automatically notified of changes
+		to file attributes, such as owner and file permissions. If you want Wumpus to update
+		its internal directory tree, you have to submit an @updateattr query.
+		<br><br>
+	</body>
+</html>
+
+

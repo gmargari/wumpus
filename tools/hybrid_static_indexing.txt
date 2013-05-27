@@ -1,0 +1,10 @@
+Idea: Combine merge-based indexing with sort-based indexing.
+
+Split terms into two sets: frequent and infrequent. Postings lists for
+frequent terms are build incrementally using extensible in-memory lists
+(unrolled linked lists). Postings lists for infrequent terms are built
+though a radix-sort step when running out of memory.
+
+Combining the two approaches should improve cache locality and therefore
+lead to better overall indexing performance.
+

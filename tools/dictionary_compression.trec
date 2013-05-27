@@ -1,0 +1,168 @@
+
+Group size: 1 / Compression: NONE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 44465588 bytes
+Lookup performance: 2577.44 ns per term
+
+
+Group size: 2 / Compression: NONE
+
+Total space consumption of dictionary: 40258242 bytes
+Lookup performance: 2404.29 ns per term
+
+
+Group size: 4 / Compression: NONE
+
+Total space consumption of dictionary: 38156510 bytes
+Lookup performance: 2414.52 ns per term
+
+
+Group size: 8 / Compression: NONE
+
+Total space consumption of dictionary: 37106517 bytes
+Lookup performance: 2480.73 ns per term
+
+
+Group size: 16 / Compression: NONE
+
+Total space consumption of dictionary: 36580894 bytes
+Lookup performance: 2738.38 ns per term
+
+
+Group size: 32 / Compression: NONE
+
+Total space consumption of dictionary: 36318525 bytes
+Lookup performance: 3397.33 ns per term
+
+
+Group size: 64 / Compression: NONE
+
+Total space consumption of dictionary: 36186207 bytes
+Lookup performance: 4905.24 ns per term
+
+
+Group size: 128 / Compression: NONE
+
+Total space consumption of dictionary: 36119526 bytes
+Lookup performance: 7848.46 ns per term
+
+
+Group size: 256 / Compression: NONE
+
+Total space consumption of dictionary: 36086429 bytes
+Lookup performance: 13628.75 ns per term
+
+
+Group size: 2 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 34194542 bytes
+Lookup performance: 2373.26 ns per term
+
+
+Group size: 4 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 29061934 bytes
+Lookup performance: 2341.16 ns per term
+
+
+Group size: 8 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 26496701 bytes
+Lookup performance: 2416.19 ns per term
+
+
+Group size: 16 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 25212656 bytes
+Lookup performance: 2668.95 ns per term
+
+
+Group size: 32 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 24570669 bytes
+Lookup performance: 3209.69 ns per term
+
+
+Group size: 64 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 24248719 bytes
+Lookup performance: 4266.25 ns per term
+
+
+Group size: 128 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 24087757 bytes
+Lookup performance: 6263.75 ns per term
+
+
+Group size: 256 / Compression: FRONTCODING
+
+Total space consumption of dictionary: 24007471 bytes
+Lookup performance: 9763.64 ns per term
+
+
+Group size: 2 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 26923215 bytes
+Lookup performance: 2269.56 ns per term
+
+
+Group size: 4 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 18155173 bytes
+Lookup performance: 2212.17 ns per term
+
+
+Group size: 8 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 13772071 bytes
+Lookup performance: 2304.09 ns per term
+
+
+Group size: 16 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 11579271 bytes
+Lookup performance: 2703.24 ns per term
+
+
+Group size: 32 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 10482820 bytes
+Lookup performance: 3595.71 ns per term
+
+
+Group size: 64 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 9933903 bytes
+Lookup performance: 5524.21 ns per term
+
+
+Group size: 128 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 9659793 bytes
+Lookup performance: 9642.73 ns per term
+
+
+Group size: 256 / Compression: FRONTCODING+VBYTE
+Total number of terms: 2102528.
+Average term length: 8.1 bytes.
+
+Total space consumption of dictionary: 9522658 bytes
+Lookup performance: 18123.33 ns per term
+

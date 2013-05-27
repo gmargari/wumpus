@@ -1,0 +1,12 @@
+This directory contains a whole bunch of different classes for different
+purposes. Each query type is realized by an extension of the Query class
+(header in query.h). When you add a new query class, be sure to add a
+
+  REGISTER_QUERY_CLASS
+
+statement at the end of the header file and include the header file at the
+beginning of query.cpp. REGISTER_QUERY_CLASS is used to inform the query
+dispatcher and the internal help system of the existence of the new query
+class. If you don't add the line, or don't include the header file in
+query.cpp, you most likely will not be able to fully use the new query class.
+

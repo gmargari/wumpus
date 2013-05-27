@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ps2pdf - - > $WUMPUS_CONVERSION_TARGET
+exit 0
+

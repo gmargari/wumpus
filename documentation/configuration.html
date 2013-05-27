@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - The configuration file (wumpus.cfg)</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - The configuration file (wumpus.cfg)</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		After you have downloaded Wumpus and unpacked the archive, you see a file named
+		wumpus.cfg in Wumpus' main directory. This configuration file comes with pre-defined
+		configuration values and helps you adjust the system to your specific needs.
+		<br><br>
+		The most important configuration variables are:
+		<ul>
+			<li style="padding:5px"> DIRECTORY: The directory that contains (or will contain) the index structure.
+				Can be either an absolute path or relative to the current working directory.
+			<li style="padding:5px"> MAX_UPDATE_SPACE: The amount of main memory you are willing to donate to
+				Wumpus' update operations. Increasing this value improves the system's indexing
+				performance, especially in dynamic environments in which update operations and
+				queries have to be processed in parallel.
+			<li style="padding:5px"> MIN_FILE_SIZE and MAX_FILE_SIZE let you define upper and lower bounds for
+				size of files that are indexed. If a file is not within this interval, Wumpus
+				will not add it to the index.
+			<li style="padding:5px"> MERGE_STRATEGY: Whenever Wumpus runs out of main memory, a new on-disk index
+				has to be created. The system is able to maintain multiple on-disk indices at
+				the same time. By setting MERGE_STRATEGY to the appropriate value, you can
+				influence how frequently Wumpus merges multiple on-disk indices into one single
+				index.
+			<li style="padding:5px"> MERGE_AT_EXIT: If set to true, this forces Wumpus to merge all on-disk indices
+				into one big index before the program is terminated.
+			<li style="padding:5px"> CACHED_EXPRESSIONS: A comma-separated list of GCL expressions that are held in
+				an internal cache of the index. If, for example, your application submits many
+				queries that contain the GCL expression <tt>"&lt;doc&gt;".."&lt;/doc&gt;"</tt>, adding
+				that expression to the list of cached expression, will increase query performance.
+			<li style="padding:5px"> GARBAGE_COLLECTION_THRESHOLD: Whenever a file is deleted from the index, it
+				is not removed from the files. Instead, an entry is added to an internal invalidation
+				list. This list is then used to filter out all index extents that belong to deleted
+				files whenever a query is processed. At some point, however, all data that stem from
+				deleted files are deleted. If the amount of these garbage postings inside the
+				index exceeds GARBAGE_COLLECTION_THRESHOLD, the garbage collector is run, and all
+				those data are removed from the index.
+			<li style="padding:5px"> APPLY_SECURITY_RESTRICTIONS is used to enable or disable Wumpus'
+				security subsystem. If set to false, no security restrictions are applied, implying that
+				all users have the same view of the index. This will usually result in a slight performance
+				increase.
+		</ul>
+	</body>
+</html>
+
+

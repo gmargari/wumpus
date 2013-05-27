@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - How to use Wumpus?</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - How to use Wumpus?</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		After you have downloaded the Wumpus software package and extracted all files from
+		the archive ("tar xzf wumpus.tgz"), change to the wumpus/ directory and
+		type in "make". This will build Wumpus and create the system executables in
+		wumpus/bin/.
+		<br><br>
+		After the system has been built, you can start Wumpus by typing
+		<blockquote>
+			bin/wumpus --config=wumpus.cfg
+		</blockquote>
+		The additional "--config" parameter is necessary to tell wumpus what configuration
+		file should be used ("wumpus.cfg"). Among other things, the configuration file defines
+		the directory in which Wumpus will create its index structures. If you use the configuration
+		file that came with Wumpus, you will find the index in wumpus/database/.
+		<br><br>
+		After you start the system, Wumpus will create a couple of files in the index directory
+		and then tell you that it is ready to process your queries:
+		<blockquote><pre>
+@0-Index loaded. </pre></blockquote>
+		You can then add files to the index and submit queries to the system. Every response to
+		a query ends with a line starting with "@" that indicates whether the query was successful
+		or not and also tells you how long it took Wumpus to process your query.
+		<blockquote><pre>
+<b>Hi Wumpus, how are you doing?</b>
+@1-Syntax error. (0 ms) </pre></blockquote>
+		<br>
+		The next section, <a href="updates.html">Index updates and simple queries</a>, shows
+		how you can add files to Wumpus' index and explains the basic query types.
+		<br><br>
+	</body>
+</html>
+
+

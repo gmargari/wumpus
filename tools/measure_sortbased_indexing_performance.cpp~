@@ -1,0 +1,242 @@
+/**
+ * This program measures the index construction performance of hash-based,
+ * sort-based, and hybrid index construction. It outputs performance figures
+ * for the initial inversion step and for the final merge operation that
+ * brings together the individual sub-indices.
+ *
+ * Temporary data (index files) will be written to the current working directory,
+ * so make sure you are not sitting in an NFS mount.
+ *
+ * Usage:  measure_hashbased_indexing_performance STRATEGY MEMORY_LIMIT < INPUT_DATA
+ *
+ * STRATEGY is one of: HASHING, SORTING, HYBRID.
+ * MEMORY_LIMIT is given in bytes and defines how much RAM the process may use.
+ *
+ * author: Stefan Buettcher
+ * created: 2007-09-08
+ * changed: 2007-09-11
+ **/
+
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "../filters/trec_inputstream.h"
+#include "../index/compactindex.h"
+#include "../index/index_iterator.h"
+#include "../index/index_merger.h"
+#include "../index/multiple_index_iterator.h"
+#include "../misc/utils.h"
+
+
+struct DictionaryEntry {
+	uint32_t hashValue;    // this term's hash value (as computed by simpleHashValue)
+	int32_t nextTerm;      // linking to next entry in same hash slot
+	int32_t termID;        // numerical term ID
+	int32_t postingCount;  // number of postings for this term
+	char term[20];         // term string itself
+};
+
+static DictionaryEntry *dictionary = NULL;
+static int termCount = 0, termsAllocated = 0;
+
+offset *postings = NULL;
+static long postingCount = 0, maxPostingCount = 0;
+static long totalNumberOfPostings = 0;
+
+static const int HASHTABLE_SIZE = 65536;
+static int32_t hashTable[HASHTABLE_SIZE];
+
+static int subIndexCount = 0;
+static int memoryLimit = 0;
+static int memoryConsumption = 0;
+
+
+static int compareLex(const void *a, const void *b) {
+	DictionaryEntry *x = (DictionaryEntry*)a;
+	DictionaryEntry *y = (DictionaryEntry*)b;
+	return strcmp(x->term, y->term);
+} // end of compareLex(const void*, const void*)
+
+
+void writeIndexToDisk() {
+	printf("Writing %d postings to disk.\n", postingCount);
+
+	// sort dictionary entries in lexicographical order
+	qsort(dictionary, termCount, sizeof(DictionaryEntry), compareLex);
+	int32_t *idMap = typed_malloc(int32_t, termCount);
+	for (int i = 0; i < termCount; i++) {
+		int termID = dictionary[i].termID;
+		idMap[termID] = i;
+	}
+
+	// adjust postings to reflect new term IDs; sort postings by term ID
+	offset mask = 0xFFFFFFFF;
+	int32_t *array = &(((int32_t*)postings)[1]);
+	for (int i = 0; i < postingCount; i++) {
+		*array = idMap[*array];
+		array += 2;
+	}
+	free(idMap);
+#if 1
+	sortOffsetsAscending(postings, postingCount);
+#endif
+
+#if 1
+	// send all postings to the output index
+	char fileName[256];
+	sprintf(fileName, "index.%04d", subIndexCount++);
+	CompactIndex *index = CompactIndex::getIndex(NULL, fileName, true);
+	int bufferPos = 0;
+	for (int i = 0; i < termCount; i++) {
+		int pCnt = dictionary[i].postingCount;
+		for (int k = 0; k < pCnt; k++)
+			postings[k + bufferPos] &= 0xFFFFFFFF;
+		index->addPostings(dictionary[i].term, &postings[bufferPos], pCnt);
+		bufferPos += pCnt;
+	}
+	delete index;
+#endif
+
+	// delete dictionary and postings; reset hash table
+	termCount = 0;
+	postingCount = 0;
+	memset(hashTable, 255, sizeof(hashTable));
+} // end of writeIndexToDisk()
+
+
+void indexRadixSort() {
+	offset indexAddress = 0;
+	int myMemoryLimit = memoryLimit - CompactIndex::WRITE_CACHE_SIZE;
+	maxPostingCount = myMemoryLimit / sizeof(offset) / 2;
+	postings = typed_malloc(offset, maxPostingCount);
+	postingCount = 0;
+
+	InputToken token;
+	TRECInputStream tokenizer(fileno(stdin));
+	while (tokenizer.getNextToken(&token)) {
+		// lookup term descriptor in dictionary
+		char *term = (char*)token.token;
+		uint32_t hashValue = simpleHashFunction(term);
+		uint32_t hashSlot = hashValue % HASHTABLE_SIZE;
+		int32_t runner = hashTable[hashSlot], prev = -1;
+		while (runner >= 0) {
+			DictionaryEntry *de = &dictionary[runner];
+			if (de->hashValue == hashValue)
+				if (strcmp(de->term, term) == 0)
+					break;
+			prev = runner;
+			runner = de->nextTerm;
+		}
+
+		offset termID = runner;
+		if (runner < 0) {
+			// if the term is not in the dictionary, add a new entry
+			if (termCount >= termsAllocated) {
+				if (termsAllocated == 0) {
+					termsAllocated = 65536;
+					dictionary = typed_malloc(DictionaryEntry, termsAllocated);
+				}
+				else {
+					termsAllocated *= 2;
+					dictionary = typed_realloc(DictionaryEntry, dictionary, termsAllocated);
+				}
+			}
+			strcpy(dictionary[termCount].term, term);
+			dictionary[termCount].hashValue = hashValue;
+			dictionary[termCount].nextTerm = -1;
+			dictionary[termCount].termID = termCount;
+			dictionary[termCount].postingCount = 0;
+			if (prev < 0)
+				hashTable[hashSlot] = termCount;
+			else
+				dictionary[prev].nextTerm = termCount;
+			termID = termCount++;
+		}
+		else if (prev >= 0) {
+			// move dictionary entry to front of collision list
+			dictionary[prev].nextTerm = dictionary[runner].nextTerm;
+			dictionary[runner].nextTerm = hashTable[hashSlot];
+			hashTable[hashSlot] = runner;
+		}
+		dictionary[termID].postingCount++;
+
+		postings[postingCount] = (++indexAddress) + (termID << 32);
+		if (++postingCount >= maxPostingCount)
+			writeIndexToDisk();
+	} // while (tokenizer->getNextToken(&token))
+	if (postingCount > 0)
+		writeIndexToDisk();
+
+	free(dictionary);
+	free(postings);
+	totalNumberOfPostings = indexAddress;
+} // end of indexRadixSort()
+
+
+int main(int argc, char **argv) {
+	if (argc != 3) {
+		fprintf(stderr, "Usage:  measure_sortbased_indexing_performance STRATEGY MEMORY_LIMIT < INPUT_DATA\n\n");
+		fprintf(stderr, "STRATEGY can be one of the following: RADIX_SORT.\n");
+		fprintf(stderr, "MEMORY_LIMIT is the allowable memory consumption, in bytes.\n\n");
+		return 1;
+	}
+	char *strategy = argv[1];
+	int status = sscanf(argv[2], "%d", &memoryLimit);
+	assert(status == 1);
+	assert(memoryLimit > 2 * CompactIndex::WRITE_CACHE_SIZE);
+	
+	initializeConfigurator(NULL, NULL);
+
+	// initialize hashTable
+	memset(hashTable, 255, sizeof(hashTable));
+
+	time_t startTime = time(NULL);
+
+	// build sub-indices
+	if (strcasecmp(strategy, "RADIX_SORT") == 0)
+		indexRadixSort();
+	else
+		return main(0, NULL);
+
+	time_t middleTime = time(NULL);
+
+	if (subIndexCount > 1) {
+		// merge sub-indices into the final index
+		IndexIterator **iterators = typed_malloc(IndexIterator*, subIndexCount);
+		for (int i = 0; i < subIndexCount; i++) {
+			char fileName[256];
+			sprintf(fileName, "index.%04d", i);
+			iterators[i] = CompactIndex::getIterator(
+					fileName, (memoryLimit - CompactIndex::WRITE_CACHE_SIZE) / subIndexCount);
+		}
+
+		MultipleIndexIterator *iterator = new MultipleIndexIterator(iterators, subIndexCount);
+		CompactIndex *target = CompactIndex::getIndex(NULL, "index.final", true);
+		IndexMerger::mergeIndices(NULL, target, iterator, NULL, false);
+		delete target;
+		delete iterator;
+		for (int i = 0; i < subIndexCount; i++) {
+			char fileName[256];
+			sprintf(fileName, "index.%04d", i);
+			unlink(fileName);
+		}
+	}
+
+	time_t endTime = time(NULL);
+
+	int time1 = middleTime - startTime;
+	int time2 = endTime - middleTime;
+	printf("--------------------\n");
+	printf("Memory limit: %d MB.\n", memoryLimit / 1024 / 1024);
+	printf("Time to create %d sub-indices: %d seconds.\n", subIndexCount, time1);
+	printf("Time to perform final merge operation: %d seconds.\n", time2);
+	printf("Total time: %d seconds.\n", time1 + time2);
+	printf("--------------------\n");
+
+	return 0;
+} // end of main(int, char**)
+
+
+

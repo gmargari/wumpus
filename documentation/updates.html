@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - Index updates and simple queries</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - Index updates and simple queries</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		Wumpus' internal index structure is based on files. You can add files to or remove
+		them from the index. To be more precise, Wumpus is based on
+		<a href="http://en.wikipedia.org/wiki/Inode">INodes</a>. This will cause problems
+		if you add files that reside on different devices. So, make sure all your input files
+		are within the same partition.
+		<br><br>
+		In order to add the content of a file to the index, start Wumpus by executing <tt>bin/wumpus</tt> and type
+		<blockquote>
+			<tt><b>@addfile <em>filename</em></b></tt>
+		</blockquote>
+		<em>filename</em> can be either an absolute path or relative to the current working directory. A file that
+		was added to the index can be removed later on by entering the command
+		<blockquote>
+		 	<tt><b>@removefile <em>filename</em></b></tt>
+		</blockquote>
+		After you have added some content to the index, you can start submitting queries to the
+		system. Some basic query types are @gcl, @count, and @get. If no query type is specified,
+		@gcl is assumed. So, for example, the query
+		<blockquote>
+			<tt><b>"information"</b></tt>
+		</blockquote>
+		would return all index positions at which the word "information" appears:
+		<blockquote><pre>
+1777 1777
+8017 8017
+8131 8131
+<em>[...]</em>
+40212 40212
+40362 40362
+40367 40367
+@0-Ok. (3 ms) </pre></blockquote>
+		By default, the length of the result set is limited to 20. If you want to get more or
+		fewer results than this, you can specify an upper limit on the number of results
+		to be returned explicitly:
+		<blockquote><pre>
+<b>@gcl[count=5] "information"</b>
+1777 1777
+8017 8017
+8131 8131
+8223 8223
+8308 8308
+@0-Ok. (2 ms) </pre></blockquote>
+		@count queries can be used to count the number of index extents that satisfy the given expression.
+		<blockquote><pre>
+<b>@count "information"</b>
+5252
+@0-Ok. (3 ms) </pre></blockquote>
+		They can also be used to count the number of occurrences of more than one entity at the same time.
+		<blockquote><pre>
+<b>@count "information", "retrieval", "information retrieval"</b>
+5252, 207, 8
+@0-Ok. (8 ms) </pre></blockquote>
+		You can tell Wumpus to apply stemming to query terms by putting a "$" symbol in front
+		of a term. You can also perform prefix searches by appending a "*" symbol at the
+		end of a query term:
+		<blockquote><pre>
+<b>@count "information", "$information", "information*"</b>
+5252, 6397, 5327
+@0-Ok. (43 ms) </pre></blockquote>
+		After you have submitted an @gcl query that told you at what positions in the index
+		certain words appear, you may fetch the actual text that corresponds to these index
+		positions. This is what @get queries are used for:
+		<blockquote><pre>
+<b>"information retrieval"</b>
+331869 331870
+332332 332333
+1346927 1346928
+1445790 1445791
+1789004 1789005
+11422086 11422087
+27589246 27589247
+27589277 27589278
+@0-Ok. (5 ms)
+<b>@get 27589272 27589283</b>
+of UNIX biocomputing and network information retrieval software. HYBROW works in conjunction
+@0-Ok. (1 ms) </pre></blockquote>
+		When you add a file to the index, Wumpus does not create a copy of the file content.
+		Therefore, if you want to use @get queries later on, they can only be processed by the
+		system if the source file is still available. If you add a file to the index and then
+		delete the file (or rename it), you will see something like this:
+		<blockquote><pre>
+<b>@get 27589272 27589283</b>
+(text unavailable)
+@1-Unable to open file. (1 ms) </pre></blockquote>
+		The index is still functional, but @get queries don't work any more.
+		<br><br>
+		Chances are you want to use more complicated queries. If this is the case, you should
+		read the introduction to <a href="gcl.html">GCL</a>, Wumpus' main query language.
+		<br><br>
+	</body>
+</html>
+
+
+

@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - Documentation</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - Documentation</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-05-13</tt> <br>
+		<br>
+		The Wumpus documentation is still under construction.
+		If you have any questions that cannot be answered
+		from the files available here or from the code itself, feel free to send me an
+		<a href="mailto:stefan@buettcher.org">e-mail</a>.
+		<br><br>
+		<h3>Using the Wumpus system</h3>
+		Use the links below to get a general introduction in how to use Wumpus.
+		<ul>
+			<li> <a href="intro.html">How to use the Wumpus Information Retrieval System?</a>
+			<li> <a href="updates.html">Index updates and simple queries</a>
+			<li> <a href="gcl.html">What is the GCL query language?</a>
+			<li> <a href="relevance.html">Relevance queries in Wumpus</a>
+			<li> <a href="authentication.html">TCP connections and user authentication</a>
+			<li> <a href="configuration.html">The configuration file</a> (wumpus.cfg)
+		</ul>
+		<ul>
+			<li> <a href="intro_fs.html">How to use the Wumpus File System Search Engine?</a>
+		</ul>
+		<br>
+		<h3>Understanding the Wumpus internals and digging into the code</h3>
+		In general, you will find lots of comments in the Wumpus code. If the <tt>.cpp</tt> file
+		that contains the code for which you want to read documentation does not contain
+		the information you are looking for, check the corresponding <tt>.h</tt> file. It should
+		tell you what a class is good for, what a particular method is good for, etc.
+		<br><br>
+		However, it might be easier for you to understand what is going on if you get
+		a general introduction to the Wumpus internals before you start reading the actual
+		code. The links below provide that kind of introduction.
+		<ul>
+			<li> <a href="class_diagram.html">General class diagram</a>
+			<li> <a href="stemming.html">Stemming in Wumpus</a> (a la Porter)
+			<li> <a href="security.html">The security subsystem</a>
+			<li> <a href="ondisk_index.html">The on-disk index structure</a>
+			<li> <a href="getqueries.html">@get queries and the index-to-text mapping</a>
+		</ul>
+		<br>
+	</body>
+</html>
+
+

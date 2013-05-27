@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+		<title>The Wumpus Information Retrieval System - Relevance Queries</title>
+	</head>
+	<body>
+		<div align="right"><img src="wumpus_logo.gif"></div>
+		<h2>The Wumpus Information Retrieval System - Relevance Queries</h2>
+		<tt>Author: Stefan Buettcher (stefan@buettcher.org)</tt> <br>
+		<tt>Last change: 2005-11-21</tt> <br>
+		<br>
+		Wumpus supports several kinds of relevance queries. The general syntax of a relevance query is:
+		<blockquote>
+			<tt>@rank[<em>method</em>][count=<em>N</em>][id=<em>ID</em>][<em>additional_parameters</em>] <em>what</em> by <em>scorer<sub>1</sub></em> ... <em>scorer<sub>m</sub></em></tt>
+		</blockquote>
+		The individual components of the query are:
+		<ul>
+			<li><em>method</em>: This can be one of OKAPI, QAP, or QAP2. BM25 is an alias for OKAPI.
+			<li><em>count</em>: The number of index extents that should be returned by the scoring
+				algorithm. If not specified, <em>N=20</em> is assumed.
+			<li><em>id</em>: This is useful for batch processing. If a query ID is given, it will
+				appear at the start of every result line, making it easier to tell which result line
+				belongs to which query when multiple queries are submitted consecutively.
+			<li><em>what</em>: This is an arbitrary GCL expression that defined the list of index
+				extents that are to be scored and whose relevance scores are to be reported to the
+				user. For TREC-like queries, this is usually <tt>&lt;doc&gt;..&lt;/doc&gt;</tt>. If the
+				list of extents to be scored is not specified, behavior depends on the actual scoring
+				function. For BM25, the container query to be scored is defined by the configuration
+				variable <tt>OKAPI_DEFAULT_CONTAINER</tt>, while QAP will just report relevant passages
+				without any information about the extent that contains a passage.
+			<li><em>scorer<sub>i</sub></em>: This can again be an arbitrary GCL expression, but is
+				usually a single term (or maybe a phrase) for TREC-like relevance queries.
+		</ul>
+		Shortcuts with the obvious meanings exist: <tt>@okapi</tt>, <tt>@bm25</tt>, <tt>@qap</tt>.
+		<br><br>
+		Depending on the actual scoring function used, it is possible to adjust the internal parameters of
+		the function so that they meet the specific requirements of the application. For BM25, for example,
+		the <em>b</em> and <em>k<sub>1</sub></em> parameters can be modified as shown below.
+		<br>
+		<h3>Example queries</h3>
+		<blockquote><pre>
+<b>@rank[bm25][id=42][count=5] "&lt;doc&gt;".."&lt;/doc&gt;" by "information", "retrieval"</b>
+42 16.733690 331444 331906
+42 16.414286 33999512 34000002
+42 16.310987 1788586 1789040
+42 16.283293 34968932 34969266
+42 16.223730 331907 332390
+@0-Ok. (16 ms) </pre></blockquote>
+		<blockquote><pre>
+<b>@okapi[k1=1.5][b=0.5][count=8] "&lt;doc&gt;".."&lt;/doc&gt;" by "information", "retrieval"</b>
+0 18.165737 331444 331906
+0 17.831360 33999512 34000002
+0 17.577662 1788586 1789040
+0 17.548101 331907 332390
+0 17.147125 34968932 34969266
+0 17.138239 27589177 27589551
+0 16.899017 1445358 1445827
+0 15.956622 1346297 1346997
+@0-Ok. (18 ms) </pre></blockquote>
+	<blockquote><pre>
+<b>@qap[count=5][id=32] "&lt;doc&gt;".."&lt;/doc&gt;" by "information", "retrieval"</b>
+32 19.661619 1788586 1789040 1789004 1789005
+32 19.661619 1445358 1445827 1445790 1445791
+32 19.661619 27589177 27589551 27589246 27589247
+32 19.661619 331444 331906 331869 331870
+32 19.661619 331907 332390 332332 332333
+@0-Ok. (15 ms) </pre></blockquote>
+		The format of the result vector is similar for all scoring functions:
+		<blockquote>
+			<em>queryID</em> <em>score</em> <em>start</em> <em>end</em>
+		</blockquote>
+		In the case of QAP, the <em>start</em> and <em>end</em> positions of the top-scoring
+		passage within the given extent are returned in addition.
+		<br><br>
+		Fancy stuff can be done with the additional parameters, which, in general, are
+		specific to the scoring algorithm that is used:
+		<blockquote><pre>
+<b>@okapi[filename][count=4] "&lt;doc&gt;".."&lt;/doc&gt;" by "information", "retrieval"</b>
+0 16.733690 331444 331906 /u1/stefan/corpora/chunks/chunk.00105
+0 16.414286 33999512 34000002 /u1/stefan/corpora/chunks/chunk.00888
+0 16.310987 1788586 1789040 /u1/stefan/corpora/chunks/chunk.00131
+0 16.283293 34968932 34969266 /u1/stefan/corpora/chunks/chunk.00910
+@0-Ok. (13 ms) </pre></blockquote>
+		<blockquote><pre>
+<b>@okapi[count=5][addget="&lt;docno&gt;".."&lt;/docno&gt;"] "&lt;doc&gt;".."&lt;/doc&gt;" by "information", "retrieval"</b>
+0 16.733690 331444 331906 "&lt;DOCNO&gt;12318783&lt;/DOCNO&gt;"
+0 16.414286 33999512 34000002 "&lt;DOCNO&gt;10131461&lt;/DOCNO&gt;"
+0 16.310987 1788586 1789040 "&lt;DOCNO&gt;12295796&lt;/DOCNO&gt;"
+0 16.283293 34968932 34969266 "&lt;DOCNO&gt;8307719&lt;/DOCNO&gt;"
+0 16.223730 331907 332390 "&lt;DOCNO&gt;12318782&lt;/DOCNO&gt;"
+@0-Ok. (36 ms) </pre></blockquote>
+		The <tt>addget</tt> parameter is especially useful if you don't want to submit a bunch of
+		@get queries after your initial relevance query to fetch all the document IDs. Please note,
+		however, that since every text fetch operation usually causes a disk seek, addget is not
+		particularly fast. If you need maximum performance, you should cache the information you want
+		to extract from the document (document ID in the above case) inside your application.
+		<br><br>
+		The full power of GCL can be used to impose structural constraints on both the extents
+		that are to be scored and on the scorers:
+		<blockquote><pre>
+<b>@okapi[count=5][addget="&lt;title&gt;".."&lt;/title&gt;"] ((("&lt;doc&gt;".."&lt;/doc&gt;")&lt;[500])&gt;"medicine") by ("information"^"retrieval"), ("relevance"+"similarity")</b>
+0 12.392150 1788586 1789040 "&lt;Title&gt;Informed populations around the world.&lt;/Title&gt;"
+0 8.173442 3156607 3156862 "&lt;Title&gt;The National Center for Biotechnology Information.&lt;/Title&gt;"
+0 7.408664 22884815 22885148 "&lt;Title&gt;Academic confessions of high school students: an analysis of adolescents' developmental concerns.&lt;/Title&gt;"
+0 7.077546 22378559 22378931 "&lt;Title&gt;Effects of instruction on the decoding skills of children with phonological-processing problems.&lt;/Title&gt;"
+0 6.435469 8900179 8900340 "&lt;Title&gt;Social and preventive medicine: a scientific approach to questions of practical relevance.&lt;/Title&gt;"
+@0-Ok. (48 ms) </pre></blockquote>
+		This query, for example, computes relevance scores for all documents that are at most 500 tokens
+		long and contain the word "medicine". All such documents are scored using a conjunction of "information"
+		and "retrieval" and a disjunction of "relevance" and "similarity". For all documents in the result set,
+		the text of the Title field is returned.
+		<br><br>
+	</body>
+</html>
+
+
