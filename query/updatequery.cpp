@@ -124,6 +124,13 @@ UpdateQuery::UpdateQuery(Index *index, const char *command, const char **modifie
 			if (glob(path, 0, NULL, &globData) == 0) {
 				for (int i = 0; i < globData.gl_pathc; i++) {
 					char *normalized = normalizePath(globData.gl_pathv[i]);
+
+					//====================================================================
+					// gmargari
+					//====================================================================
+					printf("%s\t", normalized);
+					//====================================================================
+
 					char *event = concatenateStrings("WRITE\t", normalized);
 					free(normalized);
 					if (modifiers[0] != 0) {
@@ -150,6 +157,13 @@ UpdateQuery::UpdateQuery(Index *index, const char *command, const char **modifie
 		}
 		else {
 			char *temp = normalizePath(path);
+
+			//====================================================================
+			// gmargari
+			//====================================================================
+			printf("%s\t", temp);
+			//====================================================================
+
 			free(path);
 			path = temp;
 			if (path == NULL) {
@@ -177,13 +191,14 @@ UpdateQuery::UpdateQuery(Index *index, const char *command, const char **modifie
 		gettimeofday(&index->total_end_time, NULL);
 		index->total_time.tv_sec = index->total_end_time.tv_sec - index->total_start_time.tv_sec;
 
-		printf("Time spent on parsing (updated in memory flushes): %ld seconds (or %.0f minutes)\n",
-		  index->parse_time.tv_sec, (index->parse_time.tv_sec)/60.0);
-		printf("Total time by far (updated now):                   %ld seconds (or %.0f minutes)\n",
-		  index->total_time.tv_sec, (index->total_time.tv_sec)/60.0);
-
-		fflush(stdout);
-		system("date +\"%T - %D\"");
+		if(1){
+			static int firsttime = 1;
+			if (firsttime++ == 1) {
+				printf("Parse time is updated in memory flushes only.\n");
+				printf("Total time is updated after parsing each file.\n");
+			}
+		}
+		printf("Parse time: %ld secs, Total time: %ld secs\t", index->parse_time.tv_sec, index->total_time.tv_sec);
 		//====================================================================
 
 		return;

@@ -38,6 +38,12 @@
 
 #define PRINT_DEBUG_INFORMATION 1
 
+//====================================================================
+// gmargari
+//====================================================================
+#define FLUSH_CACHE_BEFORE_QUERY 1
+//====================================================================
+
 static char workDir[MAX_CONFIG_VALUE_LENGTH + 32];
 
 static int statusCode;
@@ -119,6 +125,12 @@ static void runFromStdin() {
 		fprintf(stderr, "%s\n", responseLine);
 	delete q;
 	
+	//====================================================================
+	// gmargari
+	//====================================================================
+	printf("\nFlush system cache before each query: [%s]\n\n", FLUSH_CACHE_BEFORE_QUERY == 1 ? "ENABLED" : "DISABLED");
+	//====================================================================
+
 	printf("@0-Index loaded. Enter @exit or ^D to end the session.\n");
 	while (fgets(buffer, sizeof(buffer), stdin) != NULL) {
 		lineRead = chop(buffer);
@@ -137,6 +149,16 @@ static void runFromStdin() {
 
 		if ((strcasecmp(line, "@exit") == 0) || (strcasecmp(line, "@quit") == 0))
 			break;
+
+//====================================================================
+// gmargari
+//====================================================================
+#if FLUSH_CACHE_BEFORE_QUERY == 1
+		if (startsWith(line, "@rank")) { // flush page cache only before search queries, not before build queries (.e.d @add file)
+			system("echo 3 > /proc/sys/vm/drop_caches");
+		}
+#endif
+//====================================================================
 
 		char command[8192], argument[8192];
 		if (startsWith(line, "@sequence "))
