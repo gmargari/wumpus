@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 #include "../index/index_types.h"
 #include "../misc/all.h"
 
@@ -168,6 +169,23 @@ UpdateQuery::UpdateQuery(Index *index, const char *command, const char **modifie
 				printErrorMessage(statusCode, returnString);
 			free(event);
 		}
+
+		//====================================================================
+		// gmargari
+		//====================================================================
+		// Calculate total time by far
+		gettimeofday(&index->total_end_time, NULL);
+		index->total_time.tv_sec = index->total_end_time.tv_sec - index->total_start_time.tv_sec;
+
+		printf("Time spent on parsing (updated in memory flushes): %ld seconds (or %.0f minutes)\n",
+		  index->parse_time.tv_sec, (index->parse_time.tv_sec)/60.0);
+		printf("Total time by far (updated now):                   %ld seconds (or %.0f minutes)\n",
+		  index->total_time.tv_sec, (index->total_time.tv_sec)/60.0);
+
+		fflush(stdout);
+		system("date +\"%T - %D\"");
+		//====================================================================
+
 		return;
 	} // end @addfile
 

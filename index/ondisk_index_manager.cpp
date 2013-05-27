@@ -37,6 +37,11 @@
  * changed: 2009-02-01
  **/
 
+//====================================================================
+// gmargari
+//====================================================================
+#define GMARGARI_CODE 1
+//====================================================================
 
 #include <limits.h>
 #include <string.h>
@@ -192,8 +197,35 @@ OnDiskIndexManager::OnDiskIndexManager(Index *index) {
 	lastPartialFlushWasPointless = false;
 } // end of OnDiskIndexManager()
 
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	#include <sys/time.h>
+	#include <time.h>
+#endif
+//====================================================================
 
 void OnDiskIndexManager::runBuildTask() {
+
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	// Calculate time spent on parsing
+	gettimeofday(&index->parse_end_time, NULL);
+
+	// Seconds spent on parsing
+	index->parse_time.tv_sec += 
+	  (index->parse_end_time.tv_sec  - index->parse_start_time.tv_sec) +
+	  (index->parse_time.tv_usec + (index->parse_end_time.tv_usec - index->parse_start_time.tv_usec)) / 1000000;
+
+	// Miliseconds spent on parsing
+	index->parse_time.tv_usec =                      
+	  (index->parse_time.tv_usec + (index->parse_end_time.tv_usec - index->parse_start_time.tv_usec)) % 1000000;
+#endif
+//====================================================================
+
 	bool mustReleaseLock = getLock();
 
 	// update garbage information for in-memory update index
@@ -230,6 +262,19 @@ void OnDiskIndexManager::runBuildTask() {
 		// merge operation
 		runMaintenanceTaskSynchronously(MAINTENANCE_TASK_MERGE);
 	}
+
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	printf("\n");
+	fflush(stdout);
+	system("ls -l database/");
+	gettimeofday(&index->parse_start_time, NULL);
+#endif
+//====================================================================
+
+
 } // end of runBuildTask()
 
 
@@ -1309,36 +1354,116 @@ ExtentList * OnDiskIndexManager::getPostings(const char *term, bool fromDisk, bo
 	if (this == NULL)
 		return new ExtentList_Empty();
 
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	bool printable_term;
+	struct timeval r_startTime, r_endTime;
+	int subindicesSearched = 0, longLists = 0;
+                
+	if (strcmp(term,"<doc>") == 0 || strcmp(term,"</doc>") == 0) {
+		printable_term = 0;
+	} else {
+		printable_term = 1;
+		printf("%-20s\t", term);                
+		gettimeofday(&r_startTime, NULL);
+	}
+#endif
+//====================================================================
+
 	int cnt = 0;
 	ExtentList **lists =
 		typed_malloc(ExtentList*, MAX(currentIndexCount, newIndexCount) + 2);
 	if (fromDisk) {
 		InPlaceTermDescriptor *descriptor = NULL;
 		if (currentLongListIndex != NULL) {
-			addNonEmptyExtentList(lists, currentLongListIndex->getPostings(term), &cnt);
+			addNonEmptyExtentList(lists, currentLongListIndex->getPostings(term), &cnt); // if term is long, will add a new list to 'lists' and cnt will become 1
 			descriptor = currentLongListIndex->getDescriptor(term);
 		}
 
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+		longLists = cnt; // normally this should be 0 or 1... 1 indicates that list is long
+		assert(cnt <= 1);
+#endif
+//====================================================================    
+
 		if (newIndexCount > 0) {
-			for (int i = 0; i < newIndexCount; i++)
-				addNonEmptyExtentList(lists, newIndices[i]->getPostings(term), &cnt);
+			for (int i = 0; i < newIndexCount; i++) {
+				addNonEmptyExtentList(lists, newIndices[i]->getPostings(term), &cnt); // may not add a list
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+				subindicesSearched++;
+#endif
+//====================================================================
+			}
 		}
 		else {
-			if (descriptor == NULL) {
-				for (int i = 0; i < currentIndexCount; i++)
+			if (descriptor == NULL) { // we have a short term
+				for (int i = 0; i < currentIndexCount; i++) {
 					addNonEmptyExtentList(lists, currentIndices[i]->getPostings(term), &cnt);
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+					subindicesSearched++;
+#endif
+//====================================================================
+				}
 			}
-			else {
+			else { // we have a long term, which can also have parts in short index
 				for (int i = 0; i < currentIndexCount; i++) {
 					if (descriptor->appearsInIndex & (1 << i)) {
 						int oldCnt = cnt;
 						addNonEmptyExtentList(lists, currentIndices[i]->getPostings(term), &cnt);
-						assert(cnt > oldCnt);
+						assert(cnt > oldCnt); // ensure we added a new list to 'lists', since we know long term appears in this run
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+						subindicesSearched++;
+#endif
+//====================================================================
 					}
 				}
 			}
 		} // end else [newIndexCount <= 0]
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+		if (descriptor == NULL) {
+			printf("[S]\t");
+		}
+#endif
+//====================================================================
 	} // end if (fromDisk)
+
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	if (printable_term) {
+		int x_list_size = 0;
+        	
+		gettimeofday(&r_endTime, NULL);
+		
+		printf("runs: %d shortParts: %d\t", subindicesSearched, cnt - longLists);
+
+		for (int i = longLists; i < cnt; i++) {
+			x_list_size += lists[i]->getLength();
+		}
+		printf("Sbytes: %d\t", x_list_size);
+		printf("time: %.0f", ((r_endTime.tv_sec - r_startTime.tv_sec)*1000000.0 + (r_endTime.tv_usec - r_startTime.tv_usec))/1000.0);
+		printf("\n");
+	}
+#endif
+//====================================================================
 
 	// combine the SegmentedPostingList instances of all on-disk indices into one
 	// single object

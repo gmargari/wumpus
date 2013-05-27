@@ -102,6 +102,18 @@ void Index::getConfiguration() {
 
 
 Index::Index() {
+
+    //====================================================================
+    // gmargari
+    //====================================================================
+    parse_time.tv_sec = 0;
+    parse_time.tv_usec = 0;
+    total_time.tv_sec = 0;
+    total_time.tv_usec = 0;
+    gettimeofday(&total_start_time, NULL);
+    gettimeofday(&parse_start_time, NULL);
+    //====================================================================
+
 	readOnly = false;
 	shutdownInitiated = false;
 
@@ -139,6 +151,18 @@ Index::Index() {
 
 
 Index::Index(const char *directory, bool isSubIndex) {
+
+    //====================================================================
+    // gmargari
+    //====================================================================
+    parse_time.tv_sec = 0;
+    parse_time.tv_usec = 0;
+    total_time.tv_sec = 0;
+    total_time.tv_usec = 0;
+    gettimeofday(&total_start_time, NULL);
+    gettimeofday(&parse_start_time, NULL);
+    //====================================================================
+
 	getConfiguration();
 	this->isSubIndex = isSubIndex;
 	registeredUserCount = 0;

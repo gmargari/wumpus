@@ -171,6 +171,15 @@ public:
 
 public:
 
+    //====================================================================
+    // gmargari: number of milisecs spend on index build or text parsing
+    //====================================================================
+    struct timeval parse_time;
+    struct timeval total_time;
+    struct timeval parse_start_time, parse_end_time;
+    struct timeval total_start_time, total_end_time;
+    //====================================================================
+
 	/** TRUE iff this index is a child of a MasterIndex instance. **/
 	bool isSubIndex;
 

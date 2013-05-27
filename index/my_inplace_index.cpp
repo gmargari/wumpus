@@ -34,6 +34,13 @@
 #include "../extentlist/extentlist.h"
 #include "../misc/all.h"
 
+//====================================================================
+// gmargari
+//====================================================================
+#define GMARGARI_CODE 1
+#define RETRIEVE_LONG_LISTS 1 // For each long lists retrieve all its segments
+                              // into memory and count the time needed
+//====================================================================
 
 const int MyInPlaceIndex::INIT_SEGMENTS_BUFFER_SIZE;
 const double MyInPlaceIndex::SEGMENTS_BUFFER_GROWTH_RATE;
@@ -116,7 +123,7 @@ MyInPlaceIndex::MyInPlaceIndex(Index *owner, const char *directory) {
 		}
 
 		// make sure we have read everything
-		assert(lseek(fileHandle, 0, SEEK_CUR) == buf.st_size - sizeof(blockCount));
+		//assert(lseek(fileHandle, 0, SEEK_CUR) == buf.st_size - sizeof(blockCount));
 	}
 
 	file = new FileFile(fileName, 0, 1);
@@ -208,10 +215,20 @@ ExtentList * MyInPlaceIndex::getPostings(const char *term) {
 	if (pendingSegmentCount > 0)
 		flushPendingData();
 
-	if ((strchr(term, '*') != NULL) || (strchr(term, '$') != NULL)) {
-		log(LOG_ERROR, LOG_ID, "Stemming and prefix queries not supported by this index.");
-		return new ExtentList_Empty();
-	}
+	//===================================================================================
+	// gmargari: comment this in order to be able to search in inplace index with Stemming Level = 3
+	//===================================================================================
+ 	//if ((strchr(term, '*') != NULL) || (strchr(term, '$') != NULL)) {
+ 	//	log(LOG_ERROR, LOG_ID, "Stemming and prefix queries not supported by this index.");
+ 	//	return new ExtentList_Empty();
+ 	//}
+	//===================================================================================
+
+	//===================================================================================
+	// gmargari: print all long terms
+	//===================================================================================
+    // char *str; for (str = this->getTermSequence(); str[0] != 0; str += strlen(str) + 1) { printf("%s\n",str); }
+	//===================================================================================
 
 	std::map<std::string,InPlaceTermDescriptor>::iterator iter = termMap->find(term);
 	if (iter == termMap->end())
@@ -245,6 +262,47 @@ ExtentList * MyInPlaceIndex::getPostings(const char *term) {
 		segments[i].file = new FileFile(file, headers[i].filePosition);
 #endif
 	}
+
+	//===================================================================================
+	// gmargari
+	//===================================================================================
+#if GMARGARI_CODE == 1
+	int x_list_length, max_segment_size;
+	void *segment_buffer;
+
+	// If we should print term info
+	if (strcmp(term,"<doc>") != 0 && strcmp(term,"</doc>") != 0) { 
+		
+		x_list_length = 0;
+		max_segment_size = 0;
+		for (int i = 0; i < segmentCount; i++) { 
+			x_list_length += headers[i].size;
+			// find max fragment size			        
+			max_segment_size = MAX(max_segment_size, headers[i].size);
+		}                        
+
+		printf("[L]\t");
+		printf("segs: %d\t", segmentCount);
+		printf("Lbytes: %d\t", x_list_length);
+		//printf("longPartPostings: %d\t", x_num_postings);
+
+#if RETRIEVE_LONG_LISTS == 1
+		printf("ReadingSegmentsNow\t");
+
+		// allocate a buffer big enough to hold the biggest fragment, read all segments, one-by-one, into buffer
+		segment_buffer = (byte*)malloc(max_segment_size);
+		for (int i = 0; i < segmentCount; i++) {
+			lseek(fileHandle, headers[i].filePosition, SEEK_SET);
+			forced_read(fileHandle, segment_buffer, headers[i].size);
+		}
+		free(segment_buffer);		
+#else
+		printf("NotReadingSegments\t");
+#endif	
+	}
+#endif
+	//===================================================================================
+
 	free(headers);
 
 #if ALWAYS_LOAD_POSTINGS_INTO_MEMORY

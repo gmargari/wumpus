@@ -1,0 +1,4 @@
+@rank[bm25][docid][count=20] $DOCS by "where are you"
+@rank[bm25][docid][count=20] $DOCS by "golden gate san fransisco"
+@rank[bm25][docid][count=20] $DOCS by "the matrix"
+@rank[bm25][docid][count=20] $DOCS by "seventh son of the seventh son"

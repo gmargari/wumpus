@@ -1,0 +1,4 @@
+@addfile /tmp/file1
+@addfile /tmp/file2
+@addfile /tmp/file3
+@addfile /tmp/file4
