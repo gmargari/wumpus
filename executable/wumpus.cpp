@@ -155,7 +155,7 @@ static void runFromStdin() {
 //====================================================================
 #if FLUSH_CACHE_BEFORE_QUERY == 1
 		if (startsWith(line, "@rank")) { // flush page cache only before search queries, not before build queries (.e.d @add file)
-			system("echo 3 > /proc/sys/vm/drop_caches");
+			if (system("sudo sh -c 'echo 3 > /proc/sys/vm/drop_caches'") == -1) ; // ignore error
 		}
 #endif
 //====================================================================

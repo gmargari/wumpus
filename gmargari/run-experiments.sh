@@ -14,8 +14,7 @@ my_print() {
 # mailme()
 #========================================================
 mailme() {
-#    echo $* | mail -s "message from `hostname`" gmargari@gmail.com
-echo $*
+    echo $* | mail -s "message from `hostname`" gmargari@gmail.com
 }
 
 #========================================================

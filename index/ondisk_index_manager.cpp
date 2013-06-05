@@ -269,7 +269,7 @@ void OnDiskIndexManager::runBuildTask() {
 #if GMARGARI_CODE == 1
 	printf("\n");
 	fflush(stdout);
-	system("ls -l database/");
+	if (system("ls -l database/") == -1) ; // ignore error
 	gettimeofday(&index->parse_start_time, NULL);
 #endif
 //====================================================================
