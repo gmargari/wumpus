@@ -29,6 +29,11 @@
  * changed: 2007-07-22
  **/
 
+//====================================================================
+// gmargari
+//====================================================================
+#define GMARGARI_CODE 1
+//====================================================================
 
 #include <dirent.h>
 #include <string.h>
@@ -140,8 +145,35 @@ void HybridLexicon::addPostings(InputToken *terms, int count) {
 	memoryOccupied = 0;
 } // end of addPostings(InputToken*, int)
 
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	#include <sys/time.h>
+	#include <time.h>
+#endif
+//====================================================================
 
 void HybridLexicon::partialFlush() {
+
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	// Calculate time spent on parsing
+	gettimeofday(&owner->parse_end_time, NULL);
+
+	// Seconds spent on parsing
+	owner->parse_time.tv_sec +=
+	  (owner->parse_end_time.tv_sec - owner->parse_start_time.tv_sec) +
+	  (owner->parse_time.tv_usec + (owner->parse_end_time.tv_usec - owner->parse_start_time.tv_usec)) / 1000000;
+
+	// Miliseconds spent on parsing
+	owner->parse_time.tv_usec =
+	  (owner->parse_time.tv_usec + (owner->parse_end_time.tv_usec - owner->parse_start_time.tv_usec)) % 1000000;
+#endif
+//====================================================================
+
 	// obtain and interpret PARTIAL_FLUSH configuration variable; we accept
 	// "auto", boolean, or integer thresholds
 	static const int NO_PF = 999999;
@@ -208,10 +240,23 @@ void HybridLexicon::partialFlush() {
 			durationOfLastMerge += SECONDS_PER_DAY;
 		lastPartialFlushWasSuccessful = true;
 	}
+
+//====================================================================
+// gmargari
+//====================================================================
+#if GMARGARI_CODE == 1
+	printf("\n");
+	fflush(stdout);
+	if (system("ls -l database/") == -1) ; // ignore error
+	gettimeofday(&owner->parse_start_time, NULL);
+#endif
+//====================================================================
+
 } // end of partialFlush()
 
 
 void HybridLexicon::flushPostingsToDisk() {
+
 	assert(termCount > 0);
 	bool mustReleaseReadLock = getReadLock();
 	char mergeStrategy[MAX_CONFIG_VALUE_LENGTH];
